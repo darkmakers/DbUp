@@ -37,9 +37,9 @@ namespace DbUp.Tests
             upgradeResult = null;
             scripts = new List<SqlScript>
             {
-                new SqlScript("Script1.sql", "create table Foo (Id int identity)"),
-                new SqlScript("Script2.sql", "alter table Foo add column Name varchar(255)"),
-                new SqlScript("Script3.sql", "insert into Foo (Name) values ('test')")
+                new SqlScript("1.sql", "create table Foo (Id int identity)"),
+                new SqlScript("2.sql", "alter table Foo add column Name varchar(255)"),
+                new SqlScript("3.sql", "insert into Foo (Name) values ('test')")
             };
             database = new TemporarySQLiteDatabase("IntegrationScenarios");
             upgradeEngineBuilder = DeployChanges.To
@@ -65,6 +65,17 @@ namespace DbUp.Tests
                 .When(t => t.WhenDatabaseIsUpgraded())
                 .Then(t => t.ThenShouldHaveSuccessfulResult())
                 .And(t => t.AndShouldHaveRunAllScriptsInOrder())
+                .And(t => t.AndShouldLogInformation())
+                .BDDfy();
+        }
+
+        [Test]
+        public void UpgradingAnOutOfDateDatabaseToASpecificVersoin()
+        {
+            this.Given(t => t.GivenAnOutOfDateDatabase())
+                .When(t => t.WhenDatabaseIsUpgradedToVersion(2))
+                .Then(t => t.ThenShouldHaveSuccessfulResult())
+                .And(t => t.AndShouldHaveRunScriptsUpToSpecifiedVersionInOrder(2))
                 .And(t => t.AndShouldLogInformation())
                 .BDDfy();
         }
@@ -161,10 +172,32 @@ namespace DbUp.Tests
         {
             // Check both results and journal
             Assert.AreEqual(3, upgradeResult.Scripts.Count());
-            Assert.AreEqual("Script1.sql", upgradeResult.Scripts.ElementAt(0).Name);
-            Assert.AreEqual("Script2.sql", upgradeResult.Scripts.ElementAt(1).Name);
-            Assert.AreEqual("Script3.sql", upgradeResult.Scripts.ElementAt(2).Name);
+            Assert.AreEqual("1.sql", upgradeResult.Scripts.ElementAt(0).Name);
+            Assert.AreEqual("2.sql", upgradeResult.Scripts.ElementAt(1).Name);
+            Assert.AreEqual("3.sql", upgradeResult.Scripts.ElementAt(2).Name);
             Assert.AreEqual(3, GetJournal().GetExecutedScripts().Count());
+        }
+
+        private void AndShouldHaveRunScriptsUpToSpecifiedVersionInOrder(int maxVersion)
+        {
+            IList<SqlScript> expectedScripts = new List<SqlScript>();
+            // Check both results and journal
+            foreach (var sqlScript in scripts)
+            {
+                int version;
+                if (!Int32.TryParse(sqlScript.Name.Substring(0, sqlScript.Name.IndexOf('.') + 1), out version))
+                {
+                    throw new Exception($"Cannot extract version from script name '{sqlScript.Name}'");
+                }
+                if (version <= maxVersion)
+                {
+                    expectedScripts.Add(sqlScript);
+                }
+            }
+
+            Assert.AreEqual(expectedScripts.Count, upgradeResult.Scripts.Count());
+            Assert.That(expectedScripts.Select(x=>x.Name), Is.EquivalentTo(upgradeResult.Scripts.Select(x=>x.Name)));
+            Assert.AreEqual(expectedScripts.Count, GetJournal().GetExecutedScripts().Count());
         }
 
         public void ThenShouldNotRunAnyScripts()
@@ -207,6 +240,12 @@ namespace DbUp.Tests
         {
             upgradeEngine = upgradeEngineBuilder.Build();
             upgradeResult = upgradeEngine.PerformUpgrade();
+        }
+
+        private void WhenDatabaseIsUpgradedToVersion(int version)
+        {
+            upgradeEngine = upgradeEngineBuilder.Build();
+            upgradeResult = upgradeEngine.PerformUpgrade(version);
         }
 
         public void ThenUpgradeShouldNotBeRequired()
