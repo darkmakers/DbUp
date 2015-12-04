@@ -78,6 +78,7 @@ namespace DbUp.Tests
                 .And(t => t.AndShouldHaveRunScriptsUpToSpecifiedVersionInOrder(2))
                 .And(t => t.AndShouldLogInformation())
                 .BDDfy();
+
         }
 
         [Test]

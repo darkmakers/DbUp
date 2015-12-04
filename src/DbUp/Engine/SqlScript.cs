@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DbUp.Engine
 {
@@ -13,6 +14,7 @@ namespace DbUp.Engine
     {
         private readonly string contents;
         private readonly string name;
+        private readonly int? version;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlScript"/> class.
@@ -23,6 +25,11 @@ namespace DbUp.Engine
         {
             this.name = name;
             this.contents = contents;
+            int versionFromName;
+            if (Int32.TryParse(Regex.Match(name, @"^\d*").Value, out versionFromName))
+            {
+                version = versionFromName;
+            }
         }
 
         /// <summary>
@@ -32,6 +39,14 @@ namespace DbUp.Engine
         public virtual string Contents
         {
             get { return contents; }
+        }
+
+        /// <summary>
+        /// Gets the version number of the script (extracted from the name)
+        /// </summary>
+        public int? Version
+        {
+            get { return version; }
         }
 
         /// <summary>
