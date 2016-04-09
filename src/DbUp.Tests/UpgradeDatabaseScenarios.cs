@@ -185,7 +185,7 @@ namespace DbUp.Tests
             foreach (var sqlScript in scripts)
             {
                 int version;
-                if (!Int32.TryParse(sqlScript.Name.Substring(0, sqlScript.Name.IndexOf('.') + 1), out version))
+                if (!Int32.TryParse(sqlScript.Name.Substring(0, sqlScript.Name.IndexOf('.')), out version))
                 {
                     throw new Exception($"Cannot extract version from script name '{sqlScript.Name}'");
                 }
@@ -244,8 +244,8 @@ namespace DbUp.Tests
 
         private void WhenDatabaseIsUpgradedToVersion(int version)
         {
-            upgradeEngine = upgradeEngineBuilder.Build();
-            upgradeResult = upgradeEngine.PerformUpgrade(version);
+            upgradeEngine = upgradeEngineBuilder.SetTargetVersion(version).Build();
+            upgradeResult = upgradeEngine.PerformUpgrade();
         }
 
         public void ThenUpgradeShouldNotBeRequired()

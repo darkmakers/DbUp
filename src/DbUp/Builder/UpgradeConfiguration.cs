@@ -68,6 +68,11 @@ namespace DbUp.Builder
         public bool VariablesEnabled { get; set; }
 
         /// <summary>
+        /// Target version to apply to the Target database
+        /// </summary>
+        public int? TargetVersion { get; set; }
+
+        /// <summary>
         /// Ensures all expectations have been met regarding this configuration.
         /// </summary>
         public void Validate()
