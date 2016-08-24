@@ -100,11 +100,11 @@ public static class StandardExtensions
     /// Set the target script version to apply to the database. Any scripts with a higher version will not be run.
     /// </summary>
     /// <param name="builder"></param>
-    /// <param name="version"></param>
+    /// <param name="scriptVersion"></param>
     /// <returns></returns>
-    public static UpgradeEngineBuilder SetTargetVersion(this UpgradeEngineBuilder builder, int version)
+    public static UpgradeEngineBuilder SetTargetVersion(this UpgradeEngineBuilder builder, ScriptVersion scriptVersion)
     {
-        builder.Configure(c => c.TargetVersion = version);
+        builder.Configure(c => c.TargetScriptVersion = scriptVersion);
         return builder;
     }
 

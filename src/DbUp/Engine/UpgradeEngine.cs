@@ -102,29 +102,16 @@ namespace DbUp.Engine
 
         private List<SqlScript> GetScriptsToExecuteInsideOperation()
         {
-            int? version = configuration.TargetVersion ?? Int32.MaxValue;
             var allScripts = configuration.ScriptProviders.SelectMany(scriptProvider => scriptProvider.GetScripts(configuration.ConnectionManager));
             var executedScripts = configuration.Journal.GetExecutedScripts();
 
             return allScripts.Where(s =>
             {
-                int scriptVersion;
-                bool hasVersion = TryGetScriptVersion(s, out scriptVersion);
-                return (!hasVersion || scriptVersion <= version) && !executedScripts.Any(y => y == s.Name);
+                ScriptVersion scriptScriptVersion;
+                bool hasVersion = ScriptVersion.TryGetVersion(s.Name, out scriptScriptVersion);
+                return (!hasVersion || scriptScriptVersion <= configuration.TargetScriptVersion) && !executedScripts.Any(y => y == s.Name);
             })
             .ToList();
-        }
-
-        private bool TryGetScriptVersion(SqlScript sqlScript, out int version)
-        {
-            var regex = new Regex(@"^\d+");
-            var match = regex.Match(sqlScript.Name);
-            if (match.Success)
-            {
-                return Int32.TryParse(match.Value, out version);
-            }
-            version = -1;
-            return false;;
         }
 
         public List<string> GetExecutedScripts()

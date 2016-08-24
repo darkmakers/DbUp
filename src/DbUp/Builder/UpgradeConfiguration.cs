@@ -70,7 +70,7 @@ namespace DbUp.Builder
         /// <summary>
         /// Target version to apply to the Target database
         /// </summary>
-        public int? TargetVersion { get; set; }
+        public ScriptVersion TargetScriptVersion { get; set; }
 
         /// <summary>
         /// Ensures all expectations have been met regarding this configuration.

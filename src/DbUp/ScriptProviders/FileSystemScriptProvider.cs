@@ -66,14 +66,26 @@ namespace DbUp.ScriptProviders
         /// </summary>
         public IEnumerable<SqlScript> GetScripts(IConnectionManager connectionManager)
         {
-            var files = Directory.GetFiles(directoryPath, "*.sql").AsEnumerable();
+            return GetScriptsInternal(directoryPath);
+        }
+
+        /// <summary>
+        /// Gets all the rollback scripts to be executed
+        /// </summary>
+        public IEnumerable<SqlScript> GetRollbackScripts(IConnectionManager connectionManager)
+        {
+            return GetScriptsInternal(Path.Combine(directoryPath, "Rollback"));
+        }
+
+        private IEnumerable<SqlScript> GetScriptsInternal(string directory)
+        {
+            var files = Directory.GetFiles(directory, "*.sql").AsEnumerable();
             if (this.filter != null)
             {
                 files = files.Where(filter);
             }
             return files.Select(x => SqlScript.FromFile(x, encoding)).ToList();
         }
-
 
     }
 }

@@ -49,5 +49,13 @@ namespace DbUp.ScriptProviders
 
             return sqlScripts;
         }
+
+        /// <summary>
+        /// Gets all the rollback scripts to be executed
+        /// </summary>
+        public IEnumerable<SqlScript> GetRollbackScripts(IConnectionManager connectionManager)
+        {
+            return Enumerable.Empty<SqlScript>();
+        }
     }
 }

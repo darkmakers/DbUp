@@ -38,6 +38,7 @@ namespace DbUp.Tests
             scripts = new List<SqlScript>
             {
                 new SqlScript("1.sql", "create table Foo (Id int identity)"),
+                new SqlScript("1.2.sql", "create table Foo2 (Id int identity)"),
                 new SqlScript("2.sql", "alter table Foo add column Name varchar(255)"),
                 new SqlScript("3.sql", "insert into Foo (Name) values ('test')")
             };
@@ -73,9 +74,9 @@ namespace DbUp.Tests
         public void UpgradingAnOutOfDateDatabaseToASpecificVersoin()
         {
             this.Given(t => t.GivenAnOutOfDateDatabase())
-                .When(t => t.WhenDatabaseIsUpgradedToVersion(2))
+                .When(t => t.WhenDatabaseIsUpgradedToVersion(new ScriptVersion {MajorVersion = 2}))
                 .Then(t => t.ThenShouldHaveSuccessfulResult())
-                .And(t => t.AndShouldHaveRunScriptsUpToSpecifiedVersionInOrder(2))
+                .And(t => t.AndShouldHaveRunScriptsUpToSpecifiedVersionInOrder(new ScriptVersion { MajorVersion = 2 }))
                 .And(t => t.AndShouldLogInformation())
                 .BDDfy();
         }
@@ -178,18 +179,18 @@ namespace DbUp.Tests
             Assert.AreEqual(3, GetJournal().GetExecutedScripts().Count());
         }
 
-        private void AndShouldHaveRunScriptsUpToSpecifiedVersionInOrder(int maxVersion)
+        private void AndShouldHaveRunScriptsUpToSpecifiedVersionInOrder(ScriptVersion maxVersion)
         {
             IList<SqlScript> expectedScripts = new List<SqlScript>();
             // Check both results and journal
             foreach (var sqlScript in scripts)
             {
-                int version;
-                if (!Int32.TryParse(sqlScript.Name.Substring(0, sqlScript.Name.IndexOf('.')), out version))
+                ScriptVersion scriptVersion;
+                if (!ScriptVersion.TryGetVersion(sqlScript.Name, out scriptVersion))
                 {
                     throw new Exception($"Cannot extract version from script name '{sqlScript.Name}'");
                 }
-                if (version <= maxVersion)
+                if (scriptVersion <= maxVersion)
                 {
                     expectedScripts.Add(sqlScript);
                 }
@@ -242,9 +243,9 @@ namespace DbUp.Tests
             upgradeResult = upgradeEngine.PerformUpgrade();
         }
 
-        private void WhenDatabaseIsUpgradedToVersion(int version)
+        private void WhenDatabaseIsUpgradedToVersion(ScriptVersion scriptVersion)
         {
-            upgradeEngine = upgradeEngineBuilder.SetTargetVersion(version).Build();
+            upgradeEngine = upgradeEngineBuilder.SetTargetVersion(scriptVersion).Build();
             upgradeResult = upgradeEngine.PerformUpgrade();
         }
 
@@ -281,6 +282,14 @@ namespace DbUp.Tests
             public IEnumerable<SqlScript> GetScripts(IConnectionManager connectionManager)
             {
                 return sqlScripts;
+            }
+
+            /// <summary>
+            /// Gets all the rollback scripts to be executed
+            /// </summary>
+            public IEnumerable<SqlScript> GetRollbackScripts(IConnectionManager connectionManager)
+            {
+                return null;
             }
         }
     }

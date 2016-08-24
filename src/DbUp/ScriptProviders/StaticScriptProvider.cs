@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DbUp.Engine;
 using DbUp.Engine.Transactions;
 
@@ -27,6 +28,14 @@ namespace DbUp.ScriptProviders
         public IEnumerable<SqlScript> GetScripts(IConnectionManager connectionManager)
         {
             return scripts;
+        }
+
+        /// <summary>
+        /// Gets all the rollback scripts to be executed
+        /// </summary>
+        public IEnumerable<SqlScript> GetRollbackScripts(IConnectionManager connectionManager)
+        {
+            return Enumerable.Empty<SqlScript>();
         }
     }
 }
