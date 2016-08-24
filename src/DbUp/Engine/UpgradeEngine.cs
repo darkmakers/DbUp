@@ -43,7 +43,7 @@ namespace DbUp.Engine
         /// <summary>
         /// Performs the database upgrade.
         /// </summary>
-        public DatabaseUpgradeResult PerformUpgrade()
+        public DatabaseUpgradeResult PerformUpgrade(int? version = null)
         {
             var executed = new List<SqlScript>();
 
@@ -100,7 +100,7 @@ namespace DbUp.Engine
             }
         }
 
-        private List<SqlScript> GetScriptsToExecuteInsideOperation()
+        private List<SqlScript> GetScriptsToExecuteInsideOperation(int? version = null)
         {
             var allScripts = configuration.ScriptProviders.SelectMany(scriptProvider => scriptProvider.GetScripts(configuration.ConnectionManager));
             var executedScripts = configuration.Journal.GetExecutedScripts();
